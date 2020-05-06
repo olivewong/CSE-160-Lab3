@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Blocky Animal: L O A F</title>
+  </head>
+
+  <body onload="main()">
+    <canvas id="webgl" width="400" height="400">
+      Please use a browser that supports "canvas"
+    </canvas>
+    <br />
+    <button onclick="clearCanvas();">Clear Canvas</button>
+    <br />
+    Welcome To blocky loaf!
+    <br />
+    To turn on animation, click "toggle animation". When animation is off, you can use the sliders to control loaf's joints
+    <br />
+    Camera Angle <input type="range" min="-180" max="180" value="5" class="slider" id="angleSlider">
+    <br />
+    Thigh <input type="range" onchange="updateJointAnglesByInput(0, 'thighSlider'); "min="-180" max="75" value="0" class="slider" id="thighSlider">
+    <br />
+    Knee <input type="range" onchange="updateJointAnglesByInput(1, 'kneeSlider');" min="-180" max="180" value="0" class="slider" id="kneeSlider">
+    <br />
+    Ankle <input type="range" onchange="updateJointAnglesByInput(2, 'ankleSlider');" min="-180" max="180" value="0" class="slider" id="ankleSlider">
+    <br />
+    Metacarpus <input type="range" onchange="updateJointAnglesByInput(3, 'metacarpusSlider');" min="-180" max="180" value="0" class="slider" id="metacarpusSlider">
+    <button onclick="toggleAnimation();" type="button">Toggle Animation</button> 
+    <img src="loaf.png" alt="loaf">
+
+    
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/cuon-matrix-cse160.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./lib/cuon-utils.js"></script>
+    <script src="Shape.js"></script>
+    <script src="constants.js"></script>
+    <script src="lab3.js"></script>
+  </body>
+</html>
