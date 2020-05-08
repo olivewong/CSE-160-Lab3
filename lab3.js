@@ -137,8 +137,8 @@ initUVBuffer = () => {
   a_Position = gl.getAttribLocation(gl.program, 'a_UV');
 
   // Assign the buffer object to a_UV variable 
-  // Size = 3 bc 3d
-  gl.vertexAttribPointer(a_UV, 3, gl.FLOAT, false, 0, 0);
+  // Size = 2 bc 2d
+  gl.vertexAttribPointer(a_UV, 2, gl.FLOAT, false, 0, 0);
 
   // Enable assignment to a_UV variable so vertex shader can access buffer obj
   gl.enableVertexAttribArray(a_UV);

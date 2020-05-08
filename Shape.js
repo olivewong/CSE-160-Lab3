@@ -17,8 +17,9 @@ class Shape {
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
     if (uv) {
+      debugger;
       // If using a texture
-      initUVBuffer();
+      //initUVBuffer();
       // Write UV coords into the buffer
       gl.bufferData(gl.ARRAY_BUFFER, uv, gl.DYNAMIC_DRAW);
     }
@@ -51,7 +52,7 @@ class Cube extends Shape {
   constructor(color='hot pink', shapeToCopy=undefined) {
     let vertices = new Float32Array(shapeTypes['cube']);
     super(vertices, color=color, shapeToCopy=shapeToCopy);
-    this.uv = []
+    this.uv = [1, 0,  0, 1,  1, 1];
   }
   render() {
     // 9 coords per triangle, 18 per square
