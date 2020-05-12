@@ -114,3 +114,18 @@ const cubeCoords = {
   ]
 };
 
+let jointAnglesAnimation = {
+  // thigh, knee, ankle, metacarpus
+  'foreL': [
+    [27, -39, 0, 11], [32, -13, -39, 20], 
+   ],
+  'foreR': [
+    [27, -39, 0, 11], [32, -13, -39, 20], 
+   ],
+  'hindL': [
+    [18, 21, 28, 0], [23, 17, 28, 0], 
+  ],
+  'hindR': [
+    [23, 4, 20, 16], [18, 21, 28, 0], 
+   ],
+  }
