@@ -38,6 +38,8 @@ const FSHADER_SOURCE = `
     } else if (u_WhichTexture == 3) {
       // mixing the color and the texture
       // additive
+      gl_FragColor = (0.5) * v_Color + 0.5 * texture2D(u_Sampler0, v_UV); // interpolate
+      //gl_FragColor = v_Color - 0.5 * texture2D(u_Sampler0, v_UV); // nice subtractive
       gl_FragColor = (v_Color - 0.4 * texture2D(u_Sampler0, v_UV))+ 0.2 * v_Color* texture2D(u_Sampler0, v_UV); // secret sauce
     } else if (u_WhichTexture == 2) {
       // mixing the color and the texture
@@ -55,12 +57,8 @@ let {
 } = connectVariablesToGLSL(gl);
 let animate = false;
 let g_GlobalAngle = document.getElementById('angleSlider').value;
-let g_LookAt = {
-  'eye': [0, 0, 3],
-  'at': [0, 0, -100],
-  'up': [0, 1, 0]
-}
 let startTime = performance.now();
+let camera = new Camera();
 
 let jointAngles = {
   // thigh, knee, ankle, metacarpus
@@ -114,6 +112,9 @@ updateJointAnglesByInput = (joint=undefined, slider=undefined) => {
 
 main = () => {
   const texImage = initTextures();
+  document.onkeydown = function(ev){ 
+    keydown(ev); 
+  };
   initAllShapes();
 
   // Register the event handler to be called on loading an image
@@ -140,7 +141,6 @@ inchesToGl = (inches, mode='scalar') => {
 }
 
 initAllShapes = () => {
-
   // Loaf body 
   let body = new Cube(color='green');
   body.modelMatrix.scale(
@@ -176,36 +176,35 @@ initAllShapes = () => {
   shapesList.push(snoot);
 }
 
+function keydown(ev) {
+  const moveAmt = 0.05
+  if(ev.keyCode == 39) { // The right arrow key was pressed
+    camera.moveForward();
+  } else if (ev.keyCode == 37) { // The left arrow key was pressed
+    camera.eye.elements[0] -= moveAmt;
+  } else { return; }
+  renderAllShapes();
+}
+
+
 renderAllShapes = () => {
   // Pass the matrix to u_GlobalRotateMatrix 
   let globalRotationMatrix = new Matrix4().rotate(g_GlobalAngle, 0, 1, 0);
   //globalRotationMatrix.rotate(-5, 1, 0, 0); // arbitrary, just for perspective
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotationMatrix.elements);
 
-  // Pass the projection atrix
-  let projectionMat = new Matrix4();
-  projectionMat.setPerspective(
-    90, // degrees wide (kinda cropping)
-    canvas.width / canvas.height, // aspect ratio, should be square otherwise it squishes
-    0.1, // clipping (near)
-    100, // clipping (far)
-  )
   // if the clipping cuts off it looks really weird like a headless loaf with a neck stem
-  gl.uniformMatrix4fv(u_ProjectionMatrix, false, projectionMat.elements);
+  gl.uniformMatrix4fv(u_ProjectionMatrix, false, camera.projectionMat);
 
   // Pass the view matrix
-  let viewMat = new Matrix4();
+  
   /* z larger = backing up (or u can set wider perspective ˚)
      x larger = shifts to the left
   */
-  viewMat.setLookAt(
-    0, 0, 1, // eye position (camera position) 
-    ...g_LookAt['at'],  // at (target to look at)
-    ...g_LookAt['up'],  // up (camera up vector)
-  )
-  gl.uniformMatrix4fv(u_ViewMatrix, false, viewMat.elements);
+  
+  debugger;
+  gl.uniformMatrix4fv(u_ViewMatrix, false, camera.viewMat);
 
-    
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
