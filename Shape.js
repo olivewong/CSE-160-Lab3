@@ -1,6 +1,6 @@
 
 class Cube { 
-  constructor(color='hot pink', texture=2) {
+  constructor(color='hot pink', texture=3) {
     // Texture: 1 = yes blocky texture; 0 = no texture
     this.texture = texture;
     this.rgba = colors[color];
@@ -29,17 +29,17 @@ class Cube {
       // Subtract .08 from alpha for each face to simulate shading
       // IF U PUT I < 4 + KEEP ALPHA IT MAKES IT RAINBOW 
       for (let i = 0; i < 3; i++) {
-        rgbaShading.push(this.rgba[i] * (1.0 - j * .07));
+        rgbaShading.push(this.rgba[i] * (1.3 - j * .15));
       }
       // Keep alpha
       rgbaShading.push(this.rgba[3])
 
       // Repeat each color four times for the four vertices of the face
       colors = colors.concat(
-        rgbaShading.map(x=> x * 0.6),  // make it gradienty,
-        rgbaShading.map(x=> x += (Math.random() - 0.5) * 0.1),
+        rgbaShading.map(x=> x * 0.8),  // make it gradienty,
+        rgbaShading,//.map(x=> x += (Math.random() - 0.5) * 0.1),
         rgbaShading,
-        rgbaShading.map(x=> x * 0.9),
+        rgbaShading.map(x=> x * 1.1),
       );
     }
     this.colors = new Float32Array(colors);

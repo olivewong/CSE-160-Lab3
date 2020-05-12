@@ -35,9 +35,13 @@ const FSHADER_SOURCE = `
       gl_FragColor = v_Color;
     } else if (u_WhichTexture == 1) {
       gl_FragColor = texture2D(u_Sampler0, v_UV);
+    } else if (u_WhichTexture == 3) {
+      // mixing the color and the texture
+      // additive
+      gl_FragColor = (v_Color - 0.4 * texture2D(u_Sampler0, v_UV))+ 0.2 * v_Color* texture2D(u_Sampler0, v_UV); // secret sauce
     } else if (u_WhichTexture == 2) {
       // mixing the color and the texture
-      gl_FragColor = v_Color + 0.2 * texture2D(u_Sampler0, v_UV);
+      gl_FragColor = v_Color * 1.1 + 0.3 - 0.4*texture2D(u_Sampler0, v_UV) ; // secret sauce
     } else {
       gl_FragColor = vec4(v_UV, u_WhichTexture / 10, 1.0);
     }
@@ -271,7 +275,7 @@ inchesToGl = (inches, mode='scalar') => {
 initAllShapes = () => {
 
   // Loaf body 
-  let body = new Cube(color='hot pink');
+  let body = new Cube(color='green');
   body.modelMatrix.scale(
     inchesToGl(16), // long
     inchesToGl(5.5),  // tall
@@ -280,7 +284,7 @@ initAllShapes = () => {
   shapesList.push(body);
 
   // Head
-  let head = new Cube(color='indiger');
+  let head = new Cube(color='magenta');
   head.modelMatrix.translate(-0.6, 0.1, 0.0);
   head.modelMatrix.scale(
     inchesToGl(3), 
@@ -292,7 +296,7 @@ initAllShapes = () => {
 
   // Snoot
   let headCoordMat = new Matrix4(head.modelMatrix);
-  let snoot = new Cube('soft ginger', texture=2);
+  let snoot = new Cube(color='orange');
   snoot.modelMatrix = headCoordMat;
   snoot.modelMatrix.translate(-0.8, -0.3, 0.0);
   snoot.modelMatrix.rotate(10, 0, 0, 1);

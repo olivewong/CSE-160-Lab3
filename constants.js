@@ -9,7 +9,12 @@ const colors = { // rgba
   'loaf darker': [0.98, 0.88, 0.86, 1],
   'softer ginger': [0.86, 0.61, 0.47, 0.8],
   'soft ginger': [0.86, 0.61, 0.47, 1],
-  'nose brown': [0.37, 0.22, 0.07, 1 ]
+  'nose brown': [0.37, 0.22, 0.07, 1 ],
+  'magenta': [1.0, 0, 1.0, 1],
+  'red': [1.0, 0.05, 0.04, 1],
+  'orange': [1.0, 0.67, 0.06, 1],
+  'yellow': [1.0, 1.0, 0.05, 1],
+  'green': [0.05, 1.0, 0.08, 1],
 }
 
 const cubeCoords = {
