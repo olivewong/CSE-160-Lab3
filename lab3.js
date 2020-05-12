@@ -1,6 +1,7 @@
 // Lab 3: Creating A Virtual World
+// Rainbow Road Lite 
+// Sources:
 // https://www.youtube.com/watch?v=vNHP_OBk5tw&list=PLbyTU_tFIkcOs7XVopOy5Oti-HGiIZx0J&index=2
-// https://stackoverflow.com/questions/36689118/using-varying-at-the-moment-chrome-not-working
 // Mozilla tutorial: https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Using_textures_in_WebGL
 
 // Vertex shader program
@@ -60,56 +61,6 @@ let g_GlobalAngle = document.getElementById('angleSlider').value;
 let startTime = performance.now();
 let camera = new Camera();
 
-let jointAngles = {
-  // thigh, knee, ankle, metacarpus
-  'foreL': [],
-  'foreR': [],
-  'hindL': [],
-  'hindR': []
-}
-
-toggleAnimation = () => {
-  animate = !animate;
-  // If turned on animation, start calling tick function
-  if (animate) {
-    startTime = performance.now();
-    tick();
-  }
-}
-
-tick = () => {
-  renderAllShapes();
-  if (animate) {
-    updateJointAnglesByAnimation();
-    requestAnimationFrame(tick);
-  }
-}
-
-updateJointAnglesByAnimation = () => {
-  const numFrames = 13;
-  const theTime = parseInt((performance.now() - startTime) / 100); // the divisor slows it down 
-  const frame = theTime % numFrames;
-  for (const [legName, val] of Object.entries(jointAngles)) {
-    jointAngles[legName] = jointAnglesAnimation[legName][frame];
-  }
-}
-
-updateJointAnglesByInput = (joint=undefined, slider=undefined) => {
-  // update using the sliders, rather than animating them
-  for (const [legName, val] of Object.entries(jointAngles)) {
-    // Update each leg
-    if (joint) jointAngles[legName][joint] = parseInt(document.getElementById(slider).value);
-    // Update each joint
-    else jointAngles[legName] = [
-      parseInt(document.getElementById('thighSlider').value),
-      parseInt(document.getElementById('kneeSlider').value),
-      parseInt(document.getElementById('ankleSlider').value),
-      parseInt(document.getElementById('metacarpusSlider').value)
-    ]
-  }
-  renderAllShapes();
-}
-
 main = () => {
   const skyTexImage = initTextures('./skytexture.png');
   initAllShapes();
@@ -122,7 +73,7 @@ main = () => {
       g_GlobalAngle = e.target.value;
       renderAllShapes();
     });
-    updateJointAnglesByInput();
+    renderAllShapes();
   };
 
   // Keydown for moving around / panning
@@ -131,71 +82,17 @@ main = () => {
   };
 }
 
-inchesToGl = (inches, mode='scalar') => {
-  // Given a value in inches, approximates a webgl coordinates
-  // For scalar mode, output is 0.0 - 1.0
-  // For coordinates mode, output is -1.0 - 1.0
-  // Loaf is ~22 inches long
-  const screenLengthIn = 30.0;
-  if (inches > screenLengthIn) throw 'too long';
-  if (mode == 'scalar') return inches / screenLengthIn;
-  else if (mode == 'coordinates') return ((2 * inches) / (screenLengthIn) - 1.0); //test 
-}
-
-// 32 x 32 world
-let g_map = [
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 1],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 1, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 1],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 1, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  
-  [0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [0, 0, 0, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-  [1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0],
-]
 
 drawMap = () => {
   for (let x=0; x < 32; x++) {
     for (let y=0; y < 32; y++) {
-      //debugger;
-      console.log(g_map);
       if (g_map[x][y] == 1) {
-        let body = new Cube(Object.keys(colors)[x % 8]);
+
+        let body = new Cube(Object.keys(colors)[y % 7], texture=0);
         // make rainbow
         body.modelMatrix.translate(0, -.75, 0)
         body.modelMatrix.scale(.3, .3, .3)
-        body.modelMatrix.translate(x-16, 0, y-16);
+        body.modelMatrix.translate(x* 2 - 32, 0, y * 2 - 32);
         shapesList.push(body);
       }
     }
@@ -209,14 +106,6 @@ initAllShapes = () => {
   sky.modelMatrix.scale(50, 50, 50);
   sky.modelMatrix.translate(-0.5, 0, -0.5);
   shapesList.push(sky);
-
-  // Ground
-  let ground = new Cube(color='hot pink', texture=4);
-  ground.modelMatrix.translate(0, -.75, 0);
-  ground.modelMatrix.scale(10, 0, 10);
-  ground.modelMatrix.translate(-0.5, 0, -0.5);
-  //shapesList.push(ground);
-
 
   // Loaf body 
   let body = new Cube(color='green');
@@ -251,7 +140,7 @@ initAllShapes = () => {
   );
   snoot.modelMatrix.rotate(10, 0, 0, 1);
   shapesList.push(snoot);
-}
+  }
 
 keydown = (ev) => {
   switch (ev.keyCode) {
@@ -294,11 +183,9 @@ renderAllShapes = () => {
   gl.uniformMatrix4fv(u_ProjectionMatrix, false, camera.projectionMat);
 
   // Pass the view matrix
-  
   /* z larger = backing up (or u can set wider perspective ˚)
      x larger = shifts to the left
   */
-  
   gl.uniformMatrix4fv(u_ViewMatrix, false, camera.viewMat);
 
   // Clear <canvas>
@@ -309,3 +196,49 @@ renderAllShapes = () => {
   }
 
 }
+
+inchesToGl = (inches, mode='scalar') => {
+  // Given a value in inches, approximates a webgl coordinates
+  // For scalar mode, output is 0.0 - 1.0
+  // For coordinates mode, output is -1.0 - 1.0
+  // Loaf is ~22 inches long
+  const screenLengthIn = 30.0;
+  if (inches > screenLengthIn) throw 'too long';
+  if (mode == 'scalar') return inches / screenLengthIn;
+  else if (mode == 'coordinates') return ((2 * inches) / (screenLengthIn) - 1.0); //test 
+}
+
+/*
+toggleAnimation = () => {
+  animate = !animate;
+  // If turned on animation, start calling tick function
+  if (animate) {
+    startTime = performance.now();
+    tick();
+  }
+}
+
+tick = () => {
+  renderAllShapes();
+  if (animate) {
+    updateJointAnglesByAnimation();
+    requestAnimationFrame(tick);
+  }
+}
+
+
+updateJointAnglesByInput = (joint=undefined, slider=undefined) => {
+  // update using the sliders, rather than animating them
+  for (const [legName, val] of Object.entries(jointAngles)) {
+    // Update each leg
+    if (joint) jointAngles[legName][joint] = parseInt(document.getElementById(slider).value);
+    // Update each joint
+    else jointAngles[legName] = [
+      parseInt(document.getElementById('thighSlider').value),
+      parseInt(document.getElementById('kneeSlider').value),
+      parseInt(document.getElementById('ankleSlider').value),
+      parseInt(document.getElementById('metacarpusSlider').value)
+    ]
+  }
+  renderAllShapes();
+}*/

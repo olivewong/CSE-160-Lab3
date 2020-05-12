@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>V I R T U A L W O R L D</title>
+    <title>V I R T U A L W O R L D : Rainbow Road Lite</title>
   </head>
 
   <body onload="main()">
-    <canvas id="webgl" width="800" height="600">
+    <canvas id="webgl" width="600" height="600">
       Please use a browser that supports "canvas"
     </canvas>
     <br />
@@ -16,15 +16,9 @@
     <br />
     To turn on animation, click "toggle animation". When animation is off, you can use the sliders to control loaf's joints
     <br />
-    Camera Angle <input type="range" min="-180" max="180" value="5" class="slider" id="angleSlider">
+    Camera Angle <input type="range" min="-180" max="180" value="0" class="slider" id="angleSlider">
     <br />
-    Thigh <input type="range" onchange="updateJointAnglesByInput(0, 'thighSlider'); "min="-180" max="75" value="0" class="slider" id="thighSlider">
-    <br />
-    Knee <input type="range" onchange="updateJointAnglesByInput(1, 'kneeSlider');" min="-180" max="180" value="0" class="slider" id="kneeSlider">
-    <br />
-    Ankle <input type="range" onchange="updateJointAnglesByInput(2, 'ankleSlider');" min="-180" max="180" value="0" class="slider" id="ankleSlider">
-    <br />
-    Metacarpus <input type="range" onchange="updateJointAnglesByInput(3, 'metacarpusSlider');" min="-180" max="180" value="0" class="slider" id="metacarpusSlider">
+
     <button onclick="toggleAnimation();" type="button">Toggle Animation</button> 
     <!--<img src="loaf.png" alt="loaf">-->
 
@@ -34,9 +28,9 @@
     <script src="./lib/webgl-debug.js"></script>
     <script src="./lib/cuon-utils.js"></script>
     <script src="webgl-helpers.js"></script>
+    <script src="constants.js"></script>
     <script src="Cube.js"></script>
     <script src="Camera.js"></script>
-    <script src="constants.js"></script>
     <script src="lab3.js"></script>
   </body>
 </html>

@@ -4,20 +4,20 @@ class Cube {
     // Texture: 1 = yes blocky texture; 0 = no texture
     this.texture = texture;
     // got tired of converting to percentages and dindt wwant to change them all to 255
-    this.rgba = (colors[color][0] <= 1.0 ? 
-      colors[color] : 
-      colors[color].map(x => x / 255)); 
+    this.rgba = colors[color];
     this.vertices = new Float32Array(cubeCoords['positions']);
     this.indices = new Float32Array(cubeCoords['indices']);
     this.UV = new Float32Array(cubeCoords['texture']);
     this.numFaces = 6;
     this.modelMatrix = new Matrix4();
     this.initColors();
+    this._indexBuffer = gl.createBuffer();
+    // Create + send data to texture coordinate buffer (attr a_UV)
+    if (this.texture > 0) initArrayBuffer(this.UV, 2, gl.FLOAT, 'a_UV');
   }
-
+  
   initIndexBuffer() {
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
       new Uint16Array(this.indices), gl.STATIC_DRAW);
   }
@@ -39,8 +39,8 @@ class Cube {
 
       // Repeat each color four times for the four vertices of the face
       colors = colors.concat(
-        rgbaShading.map(x=> x * 0.8),  // make it gradienty,
-        rgbaShading,//.map(x=> x += (Math.random() - 0.5) * 0.1),
+        rgbaShading.map(x=> x*0.5 ),  // make it gradienty,
+        rgbaShading.map(x=> x += (Math.random() - 0.5) * 0.2),
         rgbaShading,
         rgbaShading.map(x=> x * 1.1),
       );
@@ -53,12 +53,8 @@ class Cube {
 
     gl.uniform1i(u_WhichTexture, this.texture);
 
-    
     // Create + send data to index buffer
     this.initIndexBuffer();
-
-    // Create + send data to texture coordinate buffer (attr a_UV)
-    if (this.texture > 0) initArrayBuffer(this.UV, 2, gl.FLOAT, 'a_UV');
 
     // Create + send data to color buffer (attr a_Color)
     initArrayBuffer(this.colors, 4, gl.FLOAT, 'a_Color');
@@ -68,6 +64,6 @@ class Cube {
 
     // Draw
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-    //debugger;
+
   }
 }
