@@ -177,12 +177,24 @@ initAllShapes = () => {
 }
 
 function keydown(ev) {
-  const moveAmt = 0.05
-  if(ev.keyCode == 39) { // The right arrow key was pressed
-    camera.moveForward();
-  } else if (ev.keyCode == 37) { // The left arrow key was pressed
-    camera.eye.elements[0] -= moveAmt;
-  } else { return; }
+  switch (ev.keyCode) {
+    case 65:
+      // A 
+      camera.moveLeft();
+      break;
+    case 68:
+      // D 
+      camera.moveRight();
+      break;
+    case 87:
+      // W
+      camera.moveForward();
+      break;
+    case 83:
+      // W
+      camera.moveBackward();
+      break;
+  }
   renderAllShapes();
 }
 
@@ -202,7 +214,6 @@ renderAllShapes = () => {
      x larger = shifts to the left
   */
   
-  debugger;
   gl.uniformMatrix4fv(u_ViewMatrix, false, camera.viewMat);
 
   // Clear <canvas>
