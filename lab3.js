@@ -1,7 +1,6 @@
 // Lab 3: Creating A Virtual World
 // Rainbow Road Lite 
 // Sources:
-// https://www.youtube.com/watch?v=vNHP_OBk5tw&list=PLbyTU_tFIkcOs7XVopOy5Oti-HGiIZx0J&index=2
 // Mozilla tutorial: https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Using_textures_in_WebGL
 
 // Vertex shader program
@@ -60,6 +59,7 @@ let animate = false;
 let g_GlobalAngle = document.getElementById('angleSlider').value;
 let startTime = performance.now();
 let camera = new Camera();
+let counterMouseMove = 0;
 
 main = () => {
   const skyTexImage = initTextures('./skytexture.png');
@@ -75,6 +75,20 @@ main = () => {
     });
     renderAllShapes();
   };
+
+  canvas.addEventListener('mousemove', e => {
+    //console.log("slkfjd");
+    counterMouseMove += 1;
+    if (counterMouseMove % 3 != 0) return;
+    if (e.offsetX > 350) {
+      camera.panLeft(250);
+      renderAllShapes();
+    } else if (e.offsetX < 250) {
+      camera.panRight(250);
+      renderAllShapes();
+    }
+
+  });
 
   // Keydown for moving around / panning
   document.onkeydown = function(ev){ 
@@ -108,7 +122,7 @@ initAllShapes = () => {
   shapesList.push(sky);
 
   // Loaf body 
-  let body = new Cube(color='green');
+  let body = new Cube(color='loaf darker');
   body.modelMatrix.scale(
     inchesToGl(16), // long
     inchesToGl(5.5),  // tall
@@ -117,7 +131,7 @@ initAllShapes = () => {
   shapesList.push(body);
 
   // Head
-  let head = new Cube(color='magenta');
+  let head = new Cube(color='soft ginger');
   head.modelMatrix.translate(-0.6, 0.1, 0.0);
   head.modelMatrix.scale(
     inchesToGl(3), 
@@ -129,7 +143,7 @@ initAllShapes = () => {
 
   // Snoot
   let headCoordMat = new Matrix4(head.modelMatrix);
-  let snoot = new Cube(color='orange');
+  let snoot = new Cube(color='loaf darker');
   snoot.modelMatrix = headCoordMat;
   snoot.modelMatrix.translate(-0.8, -0.3, 0.0);
   snoot.modelMatrix.rotate(10, 0, 0, 1);
@@ -205,40 +219,5 @@ inchesToGl = (inches, mode='scalar') => {
   const screenLengthIn = 30.0;
   if (inches > screenLengthIn) throw 'too long';
   if (mode == 'scalar') return inches / screenLengthIn;
-  else if (mode == 'coordinates') return ((2 * inches) / (screenLengthIn) - 1.0); //test 
+  else if (mode == 'coordinates') return ((2 * inches) / (screenLengthIn) - 1.0); 
 }
-
-/*
-toggleAnimation = () => {
-  animate = !animate;
-  // If turned on animation, start calling tick function
-  if (animate) {
-    startTime = performance.now();
-    tick();
-  }
-}
-
-tick = () => {
-  renderAllShapes();
-  if (animate) {
-    updateJointAnglesByAnimation();
-    requestAnimationFrame(tick);
-  }
-}
-
-
-updateJointAnglesByInput = (joint=undefined, slider=undefined) => {
-  // update using the sliders, rather than animating them
-  for (const [legName, val] of Object.entries(jointAngles)) {
-    // Update each leg
-    if (joint) jointAngles[legName][joint] = parseInt(document.getElementById(slider).value);
-    // Update each joint
-    else jointAngles[legName] = [
-      parseInt(document.getElementById('thighSlider').value),
-      parseInt(document.getElementById('kneeSlider').value),
-      parseInt(document.getElementById('ankleSlider').value),
-      parseInt(document.getElementById('metacarpusSlider').value)
-    ]
-  }
-  renderAllShapes();
-}*/

@@ -13,7 +13,7 @@ class Cube {
     this.initColors();
     this._indexBuffer = gl.createBuffer();
       // Create + send data to texture coordinate buffer (attr a_UV)
-    if (this.texture > 0) initArrayBuffer(this.UV, 2, gl.FLOAT, 'a_UV');
+    if (this.texture == 1) initArrayBuffer(this.UV, 2, gl.FLOAT, 'a_UV');
   }
   
   initIndexBuffer() {
