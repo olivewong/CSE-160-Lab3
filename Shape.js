@@ -1,69 +1,96 @@
-class Shape { 
-  constructor(vertices, color='hot pink', shapeToCopy=undefined) {
+
+class Cube { 
+  constructor(color='hot pink') {
     this.rgba = colors[color];
-    this.vertices = vertices;
+    this.vertices = new Float32Array(cubeCoords['positions']);
+    this.indices = new Float32Array(cubeCoords['indices']);
+    this.faceColors = new Float32Array(cubeCoords['indices']);
+    this.numFaces = 6;
     this.modelMatrix = new Matrix4();
   }
 
-  render(vertices=this.vertices, uv=this.uv, rgbaMult=1.0) {
-    // TODO drop shadow w depth texture
-    // Davis has his attribute shit here but i think this is more efficient
-    // Right now only triangles I think
+  initIndexBuffer() {
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array(this.indices), gl.STATIC_DRAW);
+  }
 
-    // COLOR + position
-    initVertexBuffer();
+  get colors() {
+    // Get color array + add some nice arbitrary shading
+    let colors = [];
 
-    // Write data into the vertex uffer object 
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    for (var j = 0; j < this.numFaces * 4; ++j) {
+      let rgbaShading = [];
 
-    if (uv) {
-      debugger;
-      // If using a texture
-      //initUVBuffer();
-      // Write UV coords into the buffer
-      gl.bufferData(gl.ARRAY_BUFFER, uv, gl.DYNAMIC_DRAW);
+      // Subtract .08 from alpha for each face to simulate shading
+      for (let i = 0; i < 3; i++) {
+        rgbaShading.push(this.rgba[i] * (1.0 - j * .08));
+      }
+      // Keep alpha
+      rgbaShading.push(this.rgba[3])
+
+      // Repeat each color four times for the four vertices of the face
+      colors = colors.concat(
+        rgbaShading.map(x=> x * 0.7),  // make it gradienty,
+        rgbaShading,
+        rgbaShading,
+        rgbaShading.map(x=> x * 0.9), 
+      );
     }
-    
-    // Pass the color of a point to u_FragColor variable
-    gl.uniform4f(
-      u_FragColor, 
-      this.rgba[0] * rgbaMult, 
-      this.rgba[1] * rgbaMult, 
-      this.rgba[2] * rgbaMult, 
-      this.rgba[3]
-    );
+    return new Float32Array(colors);
+  }
 
+
+  render() {
+ 
     gl.uniformMatrix4fv(u_ModelMatrix, false, this.modelMatrix.elements);
+    
+    // Create + send data to index buffer
+    this.initIndexBuffer();
+    
+    // Create + send data to color buffer (attr a_Color)
+    if (!initArrayBuffer(this.colors, 4, gl.FLOAT, 'a_Color'))
+      return -1;
+  
+    // Create + send data to vertex coordinate buffer (attr a_Color)
+    if (!initArrayBuffer(this.vertices, 3, gl.FLOAT, 'a_Position'))
+     return -1;
 
     // Draw
-    gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 3);
+    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
     
   }
 }
 
-class Triangle extends Shape {
-  constructor(color='hot pink', type='isosceles') {
-    let vertices = new Float32Array(shapeTypes[type]);
-    super(vertices, color=color);
-  }
-};
 
-class Cube extends Shape {
-  constructor(color='hot pink', shapeToCopy=undefined) {
-    let vertices = new Float32Array(shapeTypes['cube']);
-    super(vertices, color=color, shapeToCopy=shapeToCopy);
-    this.uv = [1, 0,  0, 1,  1, 1];
+
+
+/*
+
+  initUVBuffer = (uv) => { 
+    // Create a WebGL buffer (array in GPU memory)
+    let uvBuffer = gl.createBuffer(); 
+    if (!uvBuffer) {
+      throw 'Failed to create the vertex buffer object';
+    }
+  
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+  
+    // Write data into the buffer object 
+    gl.bufferData(gl.ARRAY_BUFFER, uv, gl.STATIC_DRAW);
+  
+    // Get memory location of attribute a_UV (var in GPU memory)
+    a_UV = gl.getAttribLocation(gl.program, 'a_UV');
+  
+    // Assign the buffer object to a_UV variable 
+    // Size = 2 bc 2d
+    gl.vertexAttribPointer(a_UV, 2, gl.FLOAT, false, 0, 0);
+  
+    // Enable assignment to an attribute variable so vertex shader can access buffer obj
+    gl.enableVertexAttribArray(a_UV);
+  
   }
-  render() {
-    // 9 coords per triangle, 18 per square
-    // render each square separately so we can fake shading
-    const n = 18 // 18 vertices per square
-    for (let square=0; square < (this.vertices.length / n); square++) {
-      // render square square
-      super.render(
-        this.vertices.subarray(n * square, n * square + n), 
-        1.0 - square * 0.08 // fake shading
-      );
-    } 
-  }
-}
+
+  
+  */

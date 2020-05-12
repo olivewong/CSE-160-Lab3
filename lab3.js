@@ -1,41 +1,36 @@
-// Lab 3: Virtual world
-// STOPPED VID AT 9:36
+// Lab 3: Creating A Virtual World
 // https://www.youtube.com/watch?v=vNHP_OBk5tw&list=PLbyTU_tFIkcOs7XVopOy5Oti-HGiIZx0J&index=2
+//https://stackoverflow.com/questions/36689118/using-varying-at-the-moment-chrome-not-working
 
 // Vertex shader program
-// a_UV: the book calls this st, it's the texture coordinates
-//       later copy uv values from vertex to fragment shader 
-//       gl only hooks up used variables otherwise get location gives -1
-// Model Matrix:
-// View: contains lookAt (eye, look at point, up vector)
-// Projection: (Orthographic) Projection matrix - speciying the viewing volume/clipping
-// Global rotate:
-
-// attribute vars come from JS  
-// to pass from vertex shader to fragment shader use variying variable
-// this allows you to use it in the fragment shader
-
 const VSHADER_SOURCE = `
   precision mediump float;
   attribute vec4 a_Position;
   attribute vec2 a_UV;
+  attribute vec4 a_Color;
+  varying vec4 v_Color;
   varying vec2 v_UV;
   uniform mat4 u_ModelMatrix;
-  uniform mat4 u_GlobalRotateMatrix;
-  uniform mat4 u_ViewMatrix;
   uniform mat4 u_ProjectionMatrix;
+  uniform mat4 u_ViewMatrix;
+  uniform mat4 u_GlobalRotateMatrix;
   void main() {
-    gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
+    //gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
+    gl_Position = u_ProjectionMatrix * u_ViewMatrix * a_Position;
+    gl_Position = u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
+    v_Color = a_Color;
     v_UV = a_UV;
   }`;
 
 // Fragment shader program
 const FSHADER_SOURCE = `
   precision mediump float;
-  varying vec2 v_UV;
-  uniform vec4 u_FragColor;
+  //varying vec2 v_UV;  
+  varying vec4 v_Color;
   void main() {
-    gl_FragColor = u_FragColor;
+    //gl_FragColor = vec4(v_UV, 1.0, 1.0);
+    gl_FragColor = v_Color;
+    //gl_FragColor = vec4(1.0, 0, 0, 1);
   }`;
 
 setUpWebGL = () => {
@@ -61,14 +56,12 @@ connectVariablesToGLSL = (gl) => {
   if (a_Position < 0) throw 'Failed to get the storage location of a_Position';
 
   // Get the storage location of a_Position
-  let a_UV = gl.getAttribLocation(gl.program, 'a_UV');
+  let a_UV = 2//gl.getAttribLocation(gl.program, 'a_UV');
   if (a_UV < 0) throw 'Failed to get the storage location of a_UV';
 
-  // Get storage locations of uniform variables
-
-  // Get the storage location of u_FragColor
-  let u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
-  if (!u_FragColor) throw 'Failed to get the storage location of u_FragColor';
+  // Get the storage location of a_Color
+  let a_Color = gl.getAttribLocation(gl.program, 'a_Color');
+  if (!a_Color) throw 'Failed to get the storage location of a_Color';
 
   // Holds all the transformations and pass when drawing
   let u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
@@ -85,73 +78,42 @@ connectVariablesToGLSL = (gl) => {
   // Orthographic projection matrix
   let u_ProjectionMatrix = gl.getUniformLocation(gl.program, 'u_ProjectionMatrix');
   if (!u_ProjectionMatrix) throw 'Failed to get the storage location of u_ProjectionMatrix';
-
+  
   return {
-    a_Position, a_UV, u_FragColor, u_ModelMatrix, u_GlobalRotateMatrix, u_ViewMatrix, u_ProjectionMatrix
+    a_Position, a_UV, a_Color, u_ModelMatrix, u_GlobalRotateMatrix, u_ViewMatrix, u_ProjectionMatrix
   }
 }
 
-initVertexBuffer = () => { 
-  // Create a WebGL buffer (array in GPU memory)
-  let vertexBuffer = gl.createBuffer(); 
-  if (!vertexBuffer) {
-    throw 'Failed to create the vertex buffer object';
+initArrayBuffer = (data, num, type, attribute) => {
+  var buffer = gl.createBuffer();   // Create a buffer object
+  if (!buffer) {
+    console.log('Failed to create the buffer object');
+    return false;
   }
-  // Bind buffer to a_Position attribute in the vertex shader
-  // First bind the ARRAY_BUFFER object to target (vertexBuffer)
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  /*
-  // Create index buffer 
-  let indexBuffer = gl.createBuffer();
-  if (!indexBuffer) {
-    throw 'Failed to create the index buffer object';
+
+  // Write date into the buffer object
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+
+  // Assign the buffer object to the attribute variable
+  var a_attribute = gl.getAttribLocation(gl.program, attribute);
+  if (a_attribute < 0) {
+    console.log('Failed to get the storage location of ' + attribute);
+    return false;
   }
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);*/
+  //debugger;
 
-  // Get memory location of attribute a_Position (var in GPU memory)
-  a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+  gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0);
+  // Enable the assignment of the buffer object to the attribute variable
+  gl.enableVertexAttribArray(a_attribute);
 
-  // Assign the buffer object to a_Position variable 
-  // Size = 3 bc 3d
-  gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 0, 0);
-
-  // Optimization points???
-  // Enable assignment to an attribute variable so vertex shader can access buffer obj
-  gl.enableVertexAttribArray(a_Position);
-
-  return vertexBuffer;
+  return true;
 }
-
-
-initUVBuffer = () => { 
-  // Create a WebGL buffer (array in GPU memory)
-  let uvBuffer = gl.createBuffer(); 
-  if (!uvBuffer) {
-    throw 'Failed to create the vertex buffer object';
-  }
-  // Bind buffer to a_Position attribute in the vertex shader
-  // First bind the ARRAY_BUFFER object to target (vertexBuffer)
-  gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
-
-  // Get memory location of attribute a_Position (var in GPU memory)
-  a_Position = gl.getAttribLocation(gl.program, 'a_UV');
-
-  // Assign the buffer object to a_UV variable 
-  // Size = 2 bc 2d
-  gl.vertexAttribPointer(a_UV, 2, gl.FLOAT, false, 0, 0);
-
-  // Enable assignment to a_UV variable so vertex shader can access buffer obj
-  gl.enableVertexAttribArray(a_UV);
-
-  return uvBuffer;
-}
-
 
 let shapesList = [];
 const {gl, canvas} = setUpWebGL();
 let {
-  a_Position, a_UV, u_FragColor, u_ModelMatrix, 
-  u_GlobalRotateMatrix, u_ViewMatrix, u_ProjectionMatrix
+  a_Position, a_UV, a_Color, u_ModelMatrix, u_GlobalRotateMatrix, u_ViewMatrix, u_ProjectionMatrix
 } = connectVariablesToGLSL(gl);
 let animate = false;
 let g_GlobalAngle = document.getElementById('angleSlider').value;
@@ -161,28 +123,17 @@ let startTime = performance.now();
 let jointAnglesAnimation = {
   // thigh, knee, ankle, metacarpus
   'foreL': [
-    [27, -39, 0, 11], [32, -13, -39, 20], [41, -4, -19, 8], [48, -6, -7, 8],
-    [52, -24, 29, -6], [52, -16, 29, 17], [52, -48, 30, 17], [52, -83, 82, 17],
-    [27, -83, 68, 40], [13, -52, 57, 24], [-5, -71, 20, 24], [-11, -56, 44, 8],
-    [0, -34, 3, 36]
+    [27, -39, 0, 11], [32, -13, -39, 20], 
    ],
   'foreR': [
-    [27, -39, 0, 11], [32, -13, -39, 20], [41, -4, -19, 8], [48, -6, -7, 8],
-    [52, -24, 29, -6], [52, -16, 29, 17], [52, -48, 30, 17], [52, -83, 82, 17],
-    [27, -83, 68, 40], [13, -52, 57, 24], [-5, -71, 20, 24], [-11, -56, 44, 8],
-    [0, -34, 3, 36]
+    [27, -39, 0, 11], [32, -13, -39, 20], 
    ],
   'hindL': [
-    [18, 21, 28, 0], [23, 17, 28, 0],  [39, 35, 12, 0], [37, 26, 25, -5],
-    [35, 18, 30, -5], [35, 6, 40, 0], [35, -14, 41, 12], [35, -32, 46, 26],
-    [32, -57, 8, 33], [25, -69, 39, 33], [23, -78, 39, 33], [23, -80, 25, 27], 
-    [23, 4, 20, 16]
+    [18, 21, 28, 0], [23, 17, 28, 0], 
   ],
   'hindR': [
-    [23, 4, 20, 16], [18, 21, 28, 0], [23, 17, 28, 0],  [39, 35, 12, 0], [37, 26, 25, -5],
-    [35, 18, 30, -5], [35, 6, 40, 0], [37, -14, 41, 12], [40, -32, 46, 26],
-    [32, -57, 8, 33], [25, -69, 39, 33], [23, -78, 39, 33], [23, -80, 25, 27], 
-  ],
+    [23, 4, 20, 16], [18, 21, 28, 0], 
+   ],
 }
 
 
@@ -239,12 +190,13 @@ updateJointAnglesByInput = (joint=undefined, slider=undefined) => {
 }
 
 main = () => {
-  initVertexBuffer(gl);
+
   document.getElementById('angleSlider').addEventListener('input', (e) => {
     g_GlobalAngle = e.target.value;
     renderAllShapes();
   });
   updateJointAnglesByInput();
+
 }
 
 clearCanvas = () => {
@@ -253,17 +205,10 @@ clearCanvas = () => {
   // Get the rendering context for WebGL
   let gl = getWebGLContext(canvas);
   // Clear <canvas>
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   shapesList = [];
 }
-/*
-let rotationZ = 0;
 
-update = () => {
-  rotationZ += 1;
-  renderAllShapes(a_Position, u_FragColor, gl);
-  requestAnimationFrame(update);
-}*/
 
 inchesToGl = (inches, mode='scalar') => {
   // Given a value in inches, approximates a webgl coordinates
@@ -283,10 +228,11 @@ renderAllShapes = () => {
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotationMatrix.elements);
 
   // Clear <canvas>
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
 
   // Loaf body 
-  let body = new Cube(color='loaf white');
+  let body = new Cube(color='hot pink');
  // body.modelMatrix.translate(0.1, 0.0, 0.0);
   body.modelMatrix.scale(
     inchesToGl(16), // long
@@ -294,9 +240,12 @@ renderAllShapes = () => {
     inchesToGl(7) // wide
   ) 
    body.render();
+
+  let cube = new Cube();
+
  
   // Head
-  let head = new Cube(color='loaf white');
+  let head = new Cube(color='indiger');
   head.modelMatrix.translate(-0.6, 0.1, 0.0);
   head.modelMatrix.scale(
     inchesToGl(3), 
@@ -304,7 +253,6 @@ renderAllShapes = () => {
     inchesToGl(3),
   );
   head.render();
-  let headCoordMat2 = new Matrix4(head.modelMatrix);
 
   // Snoot
   let headCoordMat = new Matrix4(head.modelMatrix);
@@ -320,76 +268,4 @@ renderAllShapes = () => {
   snoot.modelMatrix.rotate(10, 0, 0, 1);
   snoot.render();
 
-  let legBones = []
-
-  for (l = 0; l < 4; l++) {
-    // 4 legs
-    // Make thigh, knee for each
-    // Thigh
-
-    const foreHind = l < 2 ? 'fore': 'hind';
-    const LR = l % 2 == 0 ? 'L': 'R';
-    let leg = foreHind + LR;
-    //debugger;
-
-    let thigh = new Cube('loaf white');
-    thigh.modelMatrix.translate( // move her
-      foreHind == 'fore' ? -0.35 : 0.35, 
-      -inchesToGl(2), 
-      LR == 'L' ? 0.2 : -0.2
-    ) 
-    thigh.modelMatrix.rotate(jointAngles[leg][0], 0, 0, 1);
-    let kneeCoordMat = new Matrix4(thigh.modelMatrix);
-    thigh.modelMatrix.scale(
-      inchesToGl(1.7), 
-      inchesToGl(3), 
-      inchesToGl(1.5),
-    );
-    legBones.push(thigh)
-
-    // Calf
-    // todo fix z fighting by changing z to like -.001
-    let calf = new Cube(color='loaf white');
-    calf.modelMatrix = kneeCoordMat;
-    calf.modelMatrix.translate(0, -inchesToGl(4.5), -0.001); // move her
-    calf.modelMatrix.rotate(jointAngles[leg][1], 0, 0, 1);
-    let carpusCoordMat = new Matrix4(calf.modelMatrix);
-    calf.modelMatrix.scale(
-      inchesToGl(1.5), 
-      inchesToGl(2), 
-      inchesToGl(1.5),
-    );
-    legBones.push(calf)
-
-   // metatarsal
-   let metatarsal = new Cube('loaf darker');
-   metatarsal.modelMatrix = carpusCoordMat;
-   metatarsal.modelMatrix.translate(0, -inchesToGl(3.5), 0);
-   metatarsal.modelMatrix.rotate(jointAngles[leg][2], 0, 0, 1);
-   let ankleCoordMat = new Matrix4(metatarsal.modelMatrix);
-   metatarsal.modelMatrix.scale(
-    inchesToGl(1.5), 
-    inchesToGl(1.2), 
-    inchesToGl(1.5),
-  );
-  legBones.push(metatarsal);
-
-  // Foot
-  let foot = new Cube('soft ginger');
-  foot.modelMatrix = ankleCoordMat;
-  foot.modelMatrix.translate(-inchesToGl(0.3), -inchesToGl(1.7), -0.001);
-  foot.modelMatrix.rotate(jointAngles[leg][3], 0, 0, 1);
-  foot.modelMatrix.scale(
-    inchesToGl(1.8), 
-    inchesToGl(0.7), 
-    inchesToGl(1.5),
-  );
-  legBones.push(foot);
-
 }
-legBones.map( (leg) => {
-  leg.modelMatrix.translate(0, -1, 0) // change origin
-  leg.render();
-});
-}
-
