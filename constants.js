@@ -15,6 +15,7 @@ const colors = { // rgba
   'orange': [1.0, 0.67, 0.06, 1],
   'yellow': [1.0, 1.0, 0.05, 1],
   'green': [0.05, 1.0, 0.08, 1],
+  'midnight': [8, 0, 59, 1],
 }
 
 const cubeCoords = {

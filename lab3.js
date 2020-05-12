@@ -111,21 +111,23 @@ updateJointAnglesByInput = (joint=undefined, slider=undefined) => {
 }
 
 main = () => {
-  const texImage = initTextures();
-  document.onkeydown = function(ev){ 
-    keydown(ev); 
-  };
+  const skyTexImage = initTextures('./skytexture.png');
   initAllShapes();
 
   // Register the event handler to be called on loading an image
   // wait before rendering
-  texImage.onload = function() { 
-    sendTextureToGLSL(texImage); 
+  skyTexImage.onload = function() { 
+    sendTextureToGLSL(skyTexImage, gl.TEXTURE0); 
     document.getElementById('angleSlider').addEventListener('input', (e) => {
       g_GlobalAngle = e.target.value;
       renderAllShapes();
     });
     updateJointAnglesByInput();
+  };
+
+  // Keydown for moving around / panning
+  document.onkeydown = function(ev){ 
+    keydown(ev); 
   };
 }
 
@@ -141,6 +143,21 @@ inchesToGl = (inches, mode='scalar') => {
 }
 
 initAllShapes = () => {
+  // Sky
+  let sky = new Cube(color='hot pink', texture=1);
+  sky.modelMatrix.translate(0, -.75, 0);
+  sky.modelMatrix.scale(50, 50, 50);
+  sky.modelMatrix.translate(-0.5, 0, -0.5);
+  shapesList.push(sky);
+
+  // Ground
+  let ground = new Cube(color='hot pink', texture=4);
+  ground.modelMatrix.translate(0, -.75, 0);
+  ground.modelMatrix.scale(10, 0, 10);
+  ground.modelMatrix.translate(-0.5, 0, -0.5);
+  shapesList.push(ground);
+
+
   // Loaf body 
   let body = new Cube(color='green');
   body.modelMatrix.scale(
@@ -176,7 +193,7 @@ initAllShapes = () => {
   shapesList.push(snoot);
 }
 
-function keydown(ev) {
+keydown = (ev) => {
   switch (ev.keyCode) {
     case 65:
       // A 
@@ -193,6 +210,14 @@ function keydown(ev) {
     case 83:
       // W
       camera.moveBackward();
+      break;
+    case 69:
+      // E
+      camera.panRight();
+      break;
+    case 81:
+      // Q
+      camera.panLeft();
       break;
   }
   renderAllShapes();

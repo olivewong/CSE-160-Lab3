@@ -76,16 +76,16 @@ initArrayBuffer = (data, num, type, attribute) => {
   gl.enableVertexAttribArray(a_attribute);
 }
 
-initTextures = () => {
+initTextures = (path) => {
   let image = new Image();  // Create the image object
   if (!image) throw 'Failed to create the image object';
 
   // Tell the browser to load an image
-  image.src = './sadTexture.png';
+  image.src = path;
   return image;
 }
 
-sendTextureToGLSL = (image) => {
+sendTextureToGLSL = (image, textureUnit, repeat=false) => {
   var texture = gl.createTexture();   // Create a texture object
   if (!texture) throw 'Failed to create the texture object';
 
@@ -93,7 +93,7 @@ sendTextureToGLSL = (image) => {
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); 
 
   // Enable texture unit0 (there are 8 texture units total)
-  gl.activeTexture(gl.TEXTURE0);
+  gl.activeTexture(textureUnit); 
 
   // Bind the texture object to the target
   gl.bindTexture(gl.TEXTURE_2D, texture);

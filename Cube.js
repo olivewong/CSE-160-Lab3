@@ -3,7 +3,10 @@ class Cube {
   constructor(color='hot pink', texture=3) {
     // Texture: 1 = yes blocky texture; 0 = no texture
     this.texture = texture;
-    this.rgba = colors[color];
+    // got tired of converting to percentages and dindt wwant to change them all to 255
+    this.rgba = (colors[color][0] <= 1.0 ? 
+      colors[color] : 
+      colors[color].map(x => x / 255)); 
     this.vertices = new Float32Array(cubeCoords['positions']);
     this.indices = new Float32Array(cubeCoords['indices']);
     this.UV = new Float32Array(cubeCoords['texture']);
