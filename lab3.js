@@ -12,13 +12,13 @@ const VSHADER_SOURCE = `
   varying vec4 v_Color;
   varying vec2 v_UV;
   uniform mat4 u_ModelMatrix;
-  uniform mat4 u_ProjectionMatrix;
-  uniform mat4 u_ViewMatrix;
-  uniform mat4 u_GlobalRotateMatrix;
+  uniform mat4 u_ProjectionMatrix;   // Perspective
+  uniform mat4 u_ViewMatrix;         // Look at
+  uniform mat4 u_GlobalRotateMatrix; // Global Rotation
   void main() {
-    //gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
-    gl_Position = u_ProjectionMatrix * u_ViewMatrix * a_Position;
-    gl_Position = u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
+    gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
+    //gl_Position = u_ProjectionMatrix * u_ViewMatrix * a_Position;
+    //gl_Position = u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
     v_Color = a_Color;
     v_UV = a_UV;
   }`;
@@ -94,9 +94,11 @@ connectVariablesToGLSL = (gl) => {
   let u_ProjectionMatrix = gl.getUniformLocation(gl.program, 'u_ProjectionMatrix');
   if (!u_ProjectionMatrix) throw 'Failed to get the storage location of u_ProjectionMatrix';
   
+  // Texture sampler
   let u_Sampler = gl.getUniformLocation(gl.program, 'u_Sampler0');
   if (!u_Sampler) throw 'Failed to get the storage location of u_Sampler0';
 
+  // Pick whether we're using texture, color, or a combo
   let u_WhichTexture = gl.getUniformLocation(gl.program, 'u_WhichTexture');
   if (!u_WhichTexture) throw 'Failed to get the storage location of u_WhichTexture';
 
@@ -181,8 +183,7 @@ let jointAnglesAnimation = {
   'hindR': [
     [23, 4, 20, 16], [18, 21, 28, 0], 
    ],
-}
-
+  }
 
 let jointAngles = {
   // thigh, knee, ankle, metacarpus
@@ -272,6 +273,7 @@ inchesToGl = (inches, mode='scalar') => {
   if (mode == 'scalar') return inches / screenLengthIn;
   else if (mode == 'coordinates') return ((2 * inches) / (screenLengthIn) - 1.0); //test 
 }
+
 initAllShapes = () => {
 
   // Loaf body 
@@ -310,11 +312,25 @@ initAllShapes = () => {
 }
 
 renderAllShapes = () => {
-  // Pass the matrix to u_GlobalRotateMatrix attribute
+  // Pass the matrix to u_GlobalRotateMatrix 
   let globalRotationMatrix = new Matrix4().rotate(g_GlobalAngle, 0, 1, 0);
   //globalRotationMatrix.rotate(-5, 1, 0, 0); // arbitrary, just for perspective
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotationMatrix.elements);
 
+  // Pass the projection Matrix
+  let projectionMat = new Matrix4();
+  gl.uniformMatrix4fv(u_ProjectionMatrix, false, projectionMat.elements);
+
+  // Pass the view matrix
+  let viewMat = new Matrix4();
+  viewMat.setLookAt(
+    0, 0, -1, // eye position (camera position)
+    0, 0, 0,  // at (target to look at)
+    0, 1, 0   // up (camera up vector)
+  )
+  gl.uniformMatrix4fv(u_ViewMatrix, false, viewMat.elements);
+
+    
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
