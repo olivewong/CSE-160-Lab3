@@ -87,8 +87,8 @@ drawMap = () => {
   for (let x=0; x < 32; x++) {
     for (let y=0; y < 32; y++) {
       if (g_map[x][y] == 1) {
-
-        let body = new Cube(Object.keys(colors)[y % 7], texture=0);
+        let colorIdx = g_map[x].indexOf(1);
+        let body = new Cube(Object.keys(colors)[(y - colorIdx) % 7], texture=0);
         // make rainbow
         body.modelMatrix.translate(0, -.75, 0)
         body.modelMatrix.scale(.3, .3, .3)

@@ -12,7 +12,7 @@ class Cube {
     this.modelMatrix = new Matrix4();
     this.initColors();
     this._indexBuffer = gl.createBuffer();
-    // Create + send data to texture coordinate buffer (attr a_UV)
+      // Create + send data to texture coordinate buffer (attr a_UV)
     if (this.texture > 0) initArrayBuffer(this.UV, 2, gl.FLOAT, 'a_UV');
   }
   
@@ -53,6 +53,7 @@ class Cube {
 
     gl.uniform1i(u_WhichTexture, this.texture);
 
+    
     // Create + send data to index buffer
     this.initIndexBuffer();
 
@@ -64,6 +65,6 @@ class Cube {
 
     // Draw
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-
+    //debugger;
   }
 }

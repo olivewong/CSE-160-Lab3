@@ -58,10 +58,11 @@ connectVariablesToGLSL = (gl) => {
   }
 }
 
-initArrayBuffer = (data, num, type, attribute) => {
-  let buffer = gl.createBuffer();   // Create a buffer object
-  if (!buffer) throw ('Failed to create the buffer object');
-    
+initArrayBuffer = (data, num, type, attribute, buffer=undefined) => {
+  if (!buffer) {
+    buffer = gl.createBuffer();   // Create a buffer object
+    if (!buffer) throw ('Failed to create the buffer object');
+  }
 
   // Write date into the buffer object
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -74,6 +75,7 @@ initArrayBuffer = (data, num, type, attribute) => {
   gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0);
   // Enable the assignment of the buffer object to the attribute variable
   gl.enableVertexAttribArray(a_attribute);
+  return buffer;
 }
 
 initTextures = (path) => {
@@ -85,7 +87,7 @@ initTextures = (path) => {
   return image;
 }
 
-sendTextureToGLSL = (image, textureUnit, repeat=false) => {
+sendTextureToGLSL = (image, textureUnit) => {
   var texture = gl.createTexture();   // Create a texture object
   if (!texture) throw 'Failed to create the texture object';
 
